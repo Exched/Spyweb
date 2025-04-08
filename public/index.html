@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tracker Link</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 600px; margin: auto; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+    .log { background: #f0f0f0; padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h2>Buat Link Pelacak</h2>
+  <input type="text" id="targetUrl" placeholder="Masukkan link tujuan (contoh: https://google.com)" />
+  <button onclick="generateLink()">Buat Link</button>
+  <div id="generatedLink"></div>
+
+  <h2>Cek Hasil</h2>
+  <input type="text" id="trackId" placeholder="Masukkan ID Link (contoh: abc123)" />
+  <button onclick="checkLink()">Cek</button>
+  <div id="logs"></div>
+
+<script>
+function generateLink() {
+  const url = document.getElementById('targetUrl').value;
+  fetch('/api/redirect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target: url })
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('generatedLink').innerHTML = 
+      'Link: <a href="' + data.url + '" target="_blank">' + location.origin + data.url + '</a><br>ID: ' + data.id;
+  });
+}
+
+function checkLink() {
+  const id = document.getElementById('trackId').value;
+  fetch('/api/check?id=' + id)
+    .then(res => res.json())
+    .then(data => {
+      if (data.logs) {
+        document.getElementById('logs').innerHTML = data.logs.map(log => 
+          '<div class="log">Waktu: ' + log.time + '<br>IP: ' + log.ip + 
+          '<br>User-Agent: ' + log.userAgent + 
+          '<br>Lokasi: ' + JSON.stringify(log.location) + '</div>'
+        ).join('');
+      } else {
+        document.getElementById('logs').innerText = 'ID tidak ditemukan.';
+      }
+    });
+}
+</script>
+</body>
+</html>
